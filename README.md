@@ -44,6 +44,24 @@ The test suite includes:
 - Win detection algorithm tests
 - Score tracking and game flow tests
 - DOM interaction simulation tests
+- **🔒 Security Tests:**
+  - XSS prevention and input sanitization
+  - DOM manipulation security validation
+  - Input validation and bounds checking
+  - Game state integrity protection
+  - Content Security Policy compliance testing
+  - Session security and data protection
+
+### Security Testing Features
+
+The security test suite (`tests/security.test.js`) implements comprehensive defensive security validation:
+
+- **XSS Prevention**: Tests against script injection, HTML injection, and malicious event handlers
+- **Input Validation**: Validates game moves, rejects oversized inputs, and handles special characters
+- **DOM Security**: Ensures safe DOM manipulation using `textContent` instead of `innerHTML`
+- **State Protection**: Validates game state integrity and prevents score manipulation
+- **CSP Compliance**: Verifies no inline event handlers or dangerous function usage
+- **Data Sanitization**: Tests proper sanitization of user-generated content
 
 ## How to Play
 1. To make a move, the player will use a single mouse click to mark a space. In this version, there is no provision to undo a move. Once a move is made, the game proceeds to the next player's turn.
