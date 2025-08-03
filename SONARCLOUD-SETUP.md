@@ -22,7 +22,7 @@ The project is already configured with SonarCloud GitHub Action. You just need t
 
 1. Go to https://sonarcloud.io
 2. Sign in with GitHub
-3. Import your organization
+3. Import your organization.
 4. Create a new project or import existing repository
 
 ### 2. Get Required Tokens
