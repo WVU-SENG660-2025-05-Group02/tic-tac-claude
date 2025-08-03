@@ -9,6 +9,11 @@ on:
   schedule:
     - cron: '0 2 * * 1'  # Weekly scan on Mondays at 2 AM
 
+permissions:
+  contents: read
+  security-events: write
+  actions: read
+
 jobs:
   scan-frontend:
     runs-on: ubuntu-latest
