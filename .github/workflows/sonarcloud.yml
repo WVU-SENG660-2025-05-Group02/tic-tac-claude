@@ -33,6 +33,11 @@ jobs:
         run: |
           if [ -f "./backend/package.json" ]; then
             echo "backend-exists=true" >> $GITHUB_OUTPUT
+            if [ -f "./backend/package-lock.json" ]; then
+              echo "backend-lockfile=true" >> $GITHUB_OUTPUT
+            else
+              echo "backend-lockfile=false" >> $GITHUB_OUTPUT
+            fi
           else
             echo "backend-exists=false" >> $GITHUB_OUTPUT
           fi
@@ -42,6 +47,11 @@ jobs:
         run: |
           if [ -f "./frontend/package.json" ]; then
             echo "frontend-exists=true" >> $GITHUB_OUTPUT
+            if [ -f "./frontend/package-lock.json" ]; then
+              echo "frontend-lockfile=true" >> $GITHUB_OUTPUT
+            else
+              echo "frontend-lockfile=false" >> $GITHUB_OUTPUT
+            fi
           else
             echo "frontend-exists=false" >> $GITHUB_OUTPUT
           fi
@@ -49,12 +59,22 @@ jobs:
       - name: Install backend dependencies
         if: steps.check-backend.outputs.backend-exists == 'true'
         working-directory: ./backend
-        run: npm ci
+        run: |
+          if [ "${{ steps.check-backend.outputs.backend-lockfile }}" == "true" ]; then
+            npm ci
+          else
+            npm install
+          fi
 
       - name: Install frontend dependencies
         if: steps.check-frontend.outputs.frontend-exists == 'true'
         working-directory: ./frontend
-        run: npm ci
+        run: |
+          if [ "${{ steps.check-frontend.outputs.frontend-lockfile }}" == "true" ]; then
+            npm ci
+          else
+            npm install
+          fi
 
       - name: Run backend tests with coverage
         if: steps.check-backend.outputs.backend-exists == 'true'
@@ -109,7 +129,46 @@ jobs:
         with:
           node-version: '18'
 
+      - name: Check for backend dependencies
+        id: check-backend-audit
+        run: |
+          if [ -f "./backend/package.json" ]; then
+            echo "backend-exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "backend-exists=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Check for frontend dependencies
+        id: check-frontend-audit
+        run: |
+          if [ -f "./frontend/package.json" ]; then
+            echo "frontend-exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "frontend-exists=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Install backend dependencies for audit
+        if: steps.check-backend-audit.outputs.backend-exists == 'true'
+        working-directory: ./backend
+        run: |
+          if [ -f "package-lock.json" ]; then
+            npm ci
+          else
+            npm install
+          fi
+
+      - name: Install frontend dependencies for audit
+        if: steps.check-frontend-audit.outputs.frontend-exists == 'true'
+        working-directory: ./frontend
+        run: |
+          if [ -f "package-lock.json" ]; then
+            npm ci
+          else
+            npm install
+          fi
+
       - name: Backend Security Audit
+        if: steps.check-backend-audit.outputs.backend-exists == 'true'
         working-directory: ./backend
         run: |
           npm audit --audit-level moderate || true
@@ -117,6 +176,7 @@ jobs:
         continue-on-error: true
 
       - name: Frontend Security Audit
+        if: steps.check-frontend-audit.outputs.frontend-exists == 'true'
         working-directory: ./frontend
         run: |
           npm audit --audit-level moderate || true
@@ -130,4 +190,5 @@ jobs:
           path: |
             backend/backend-audit.json
             frontend/frontend-audit.json
+          if-no-files-found: ignore
         continue-on-error: true
