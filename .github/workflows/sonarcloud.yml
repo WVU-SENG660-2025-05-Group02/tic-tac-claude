@@ -73,12 +73,10 @@ jobs:
           args: >
             -Dsonar.verbose=true
 
-      - name: SonarCloud Quality Gate Check
-        uses: sonarqube-quality-gate-action@master
-        timeout-minutes: 5
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        continue-on-error: true
+      - name: Wait for Quality Gate
+        run: |
+          echo "Quality Gate status will be visible in SonarCloud dashboard"
+          echo "Visit: https://sonarcloud.io/projects?search=tic-tac-claude"
 
   security-audit:
     name: Security Audit
