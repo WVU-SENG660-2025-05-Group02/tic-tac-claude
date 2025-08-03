@@ -6,7 +6,7 @@
 
 ## Running the Game
 
-Since this is a static HTML/CSS/JS project:
+### Option 1: Simple Vanilla Version (No dependencies)
 
 ```bash
 # Open in browser directly
@@ -18,6 +18,22 @@ python -m http.server 8000
 # or with Node.js
 npx serve .
 ```
+
+### Option 2: Full Stack Version with Docker
+
+For the complete application with user authentication and persistent storage:
+
+```bash
+# Start the full application stack
+docker-compose up --build
+
+# Access the application:
+# - Frontend: http://localhost:5173
+# - Backend API: http://localhost:3000
+# - Database: localhost:5432
+```
+
+**See [README-Docker.md](README-Docker.md) for complete Docker setup instructions, security features, and API documentation.**
 
 ## Running the Tests
 
@@ -50,18 +66,27 @@ The test suite includes:
   - Input validation and bounds checking
   - Game state integrity protection
   - Content Security Policy compliance testing
-  - Session security and data protection
+  - HTTP security headers validation
+  - Rate limiting and DoS protection
+  - CSRF protection and session security
+  - Secure error handling and data storage
 
 ### Security Testing Features
 
-The security test suite (`tests/security.test.js`) implements comprehensive defensive security validation:
+The comprehensive security test suite implements defensive security validation:
 
-- **XSS Prevention**: Tests against script injection, HTML injection, and malicious event handlers
-- **Input Validation**: Validates game moves, rejects oversized inputs, and handles special characters
-- **DOM Security**: Ensures safe DOM manipulation using `textContent` instead of `innerHTML`
-- **State Protection**: Validates game state integrity and prevents score manipulation
-- **CSP Compliance**: Verifies no inline event handlers or dangerous function usage
-- **Data Sanitization**: Tests proper sanitization of user-generated content
+- **`tests/security.test.js`**: Core security tests for XSS prevention, input validation, DOM security, and state protection
+- **`tests/security-headers.test.js`**: Advanced security tests for HTTP headers, rate limiting, CSRF protection, and secure session management
+- **`SECURITY-CHECKLIST.md`**: Complete security audit checklist with implementation status and recommendations
+
+**Key Security Features Tested:**
+- **XSS Prevention**: Script injection, HTML injection, and malicious event handler protection
+- **Input Validation**: Whitelist validation, oversized input rejection, special character handling
+- **DOM Security**: Safe manipulation using `textContent`, attribute injection prevention
+- **State Protection**: Game state integrity, score manipulation prevention, session security
+- **Headers Security**: CSP validation, security headers compliance, clickjacking prevention
+- **Rate Limiting**: DoS protection simulation, rapid request detection
+- **Data Security**: Secure storage validation, error information leakage prevention
 
 ## How to Play
 1. To make a move, the player will use a single mouse click to mark a space. In this version, there is no provision to undo a move. Once a move is made, the game proceeds to the next player's turn.
