@@ -100,9 +100,20 @@ jobs:
         run: |
           echo "Looking for coverage files..."
           find . -name "*.lcov" -o -name "coverage-final.json" -o -name "clover.xml" | head -10
+
+      - name: Check SONAR_TOKEN
+        run: |
+          if [ -z "${{ secrets.SONAR_TOKEN }}" ]; then
+            echo "::warning title=Missing SONAR_TOKEN::SONAR_TOKEN secret is not set. Please add it in repository settings."
+            echo "::notice title=Setup Instructions::Visit SONARCLOUD-SETUP.md for complete setup instructions."
+            echo "SonarCloud scan will be skipped without SONAR_TOKEN."
+          else
+            echo "SONAR_TOKEN is configured ✓"
+          fi
           
       - name: SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@master
+        if: ${{ secrets.SONAR_TOKEN != '' }}
+        uses: SonarSource/sonarqube-scan-action@v5.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -112,9 +123,19 @@ jobs:
             -Dsonar.verbose=true
 
       - name: Wait for Quality Gate
+        if: ${{ secrets.SONAR_TOKEN != '' }}
         run: |
           echo "Quality Gate status will be visible in SonarCloud dashboard"
           echo "Visit: https://sonarcloud.io/projects?search=tic-tac-claude"
+
+      - name: SonarCloud Setup Required
+        if: ${{ secrets.SONAR_TOKEN == '' }}
+        run: |
+          echo "::notice title=SonarCloud Setup Required::To enable SonarCloud analysis, please:"
+          echo "1. Set up SonarCloud account at https://sonarcloud.io"
+          echo "2. Add SONAR_TOKEN secret in repository settings"
+          echo "3. Update sonar-project.properties with your organization key"
+          echo "4. See SONARCLOUD-SETUP.md for detailed instructions"
 
   security-audit:
     name: Security Audit
