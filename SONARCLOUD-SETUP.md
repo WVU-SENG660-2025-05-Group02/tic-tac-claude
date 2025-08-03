@@ -2,13 +2,19 @@
 
 This guide explains how to configure and use SonarCloud for continuous code quality and security analysis.
 
-## 🚀 Quick Setup
+## 🚀 Quick Setup (Personal Account)
 
-The project is already configured with SonarCloud GitHub Action. You just need to:
+The project is already configured with SonarCloud GitHub Action. For personal GitHub accounts:
 
-1. **Set up SonarCloud account** at https://sonarcloud.io
-2. **Configure repository secrets** in GitHub
-3. **Update organization key** in `sonar-project.properties`
+1. **Sign in to SonarCloud** with your GitHub account at https://sonarcloud.io
+2. **Add your repository**: Click "Analyze new project" → "From GitHub" → Select `tic-tac-claude`
+3. **Get your tokens**: Copy the generated project key and your username (organization key)
+4. **Add GitHub secret**: Add `SONAR_TOKEN` in repository settings
+5. **Update config**: Edit `sonar-project.properties` with your keys
+
+## 🏢 Organization Setup
+
+If you need organization-level setup, you'll need organization owner permissions.
 
 ## 📋 Prerequisites
 
@@ -22,8 +28,8 @@ The project is already configured with SonarCloud GitHub Action. You just need t
 
 1. Go to https://sonarcloud.io
 2. Sign in with GitHub
-3. Import your organization.
-4. Create a new project or import existing repository
+3. **For personal repositories**: SonarCloud automatically creates a personal organization using your GitHub username
+4. **For organization repositories**: You need organization owner permissions (skip if you don't have these)
 
 ### 2. Get Required Tokens
 
@@ -32,7 +38,12 @@ The project is already configured with SonarCloud GitHub Action. You just need t
 2. Generate a new token with a descriptive name
 3. Copy the token (you won't see it again)
 
-**Organization Key:**
+**Organization Key (Personal Account):**
+1. After signing in, your organization key is usually your GitHub username
+2. Check the URL: `sonarcloud.io/organizations/YOUR-USERNAME`
+3. The part after `/organizations/` is your organization key
+
+**Organization Key (Organization Account):**
 1. In SonarCloud, go to your organization
 2. Copy the organization key from the URL or organization page
 
@@ -48,13 +59,33 @@ SONAR_TOKEN=your_sonar_token_here
 
 Note: `GITHUB_TOKEN` is automatically available in GitHub Actions.
 
-### 4. Update Configuration
+### 4. Create SonarCloud Project
+
+**Important**: You must create the project in SonarCloud before running the workflow.
+
+1. **In SonarCloud dashboard**:
+   - Click "Analyze new project" or "+" 
+   - Choose "From GitHub"
+   - Select your `tic-tac-claude` repository
+   - SonarCloud will auto-generate the project key
+
+2. **Project details** (auto-generated):
+   - Project Key: `your-github-username_tic-tac-claude`
+   - Organization Key: Your GitHub username (for personal accounts)
+
+### 5. Update Configuration
 
 Edit `sonar-project.properties` and update:
 
 ```properties
 sonar.organization=your-org-key-here
-sonar.projectKey=your-project-key-here
+sonar.projectKey=your-github-username_tic-tac-claude
+```
+
+**Example**:
+```properties
+sonar.organization=mycompany
+sonar.projectKey=john-doe_tic-tac-claude
 ```
 
 ## 📁 Current Configuration
@@ -142,6 +173,12 @@ sonar.issue.ignore.multicriteria.e5.resourceKey=**/specific-files/**
 **"Quality gate failed"**
 - Review SonarCloud dashboard for specific issues
 - Fix code smells, bugs, and security hotspots
+
+**"Could not find a default branch for project" / "project does not exist"**
+- Project hasn't been created in SonarCloud yet
+- Go to SonarCloud dashboard and create the project first
+- Make sure project key matches exactly what's in `sonar-project.properties`
+- Verify organization key is correct
 
 ### Debug Steps:
 
