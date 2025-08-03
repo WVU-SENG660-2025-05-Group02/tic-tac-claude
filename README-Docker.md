@@ -4,9 +4,11 @@ This project now includes Docker configuration for a full-stack Tic Tac Toe appl
 
 ## Architecture
 
-- **Frontend**: Vite + Vanilla JavaScript (Port 5173)
-- **Backend**: Node.js + Express.js (Port 3000)
+- **Frontend**: Vite + Vanilla JavaScript (Port 5173) - Node.js 22 Alpine
+- **Backend**: Node.js + Express.js (Port 3000) - Node.js 22 Alpine  
 - **Database**: PostgreSQL (Port 5432)
+
+**Security**: Enhanced security with multi-stage builds, non-root users, Go removal, and updated packages to address CVE-2024-24790 and CVE-2024-34156.
 
 ## Quick Start
 
