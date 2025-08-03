@@ -27,26 +27,44 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '18'
-          cache: 'npm'
-          cache-dependency-path: |
-            backend/package-lock.json
-            frontend/package-lock.json
+
+      - name: Check for backend dependencies
+        id: check-backend
+        run: |
+          if [ -f "./backend/package.json" ]; then
+            echo "backend-exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "backend-exists=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Check for frontend dependencies
+        id: check-frontend
+        run: |
+          if [ -f "./frontend/package.json" ]; then
+            echo "frontend-exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "frontend-exists=false" >> $GITHUB_OUTPUT
+          fi
 
       - name: Install backend dependencies
+        if: steps.check-backend.outputs.backend-exists == 'true'
         working-directory: ./backend
         run: npm ci
 
       - name: Install frontend dependencies
+        if: steps.check-frontend.outputs.frontend-exists == 'true'
         working-directory: ./frontend
         run: npm ci
 
       - name: Run backend tests with coverage
+        if: steps.check-backend.outputs.backend-exists == 'true'
         working-directory: ./backend
         run: |
           npm run test:coverage || true
         continue-on-error: true
 
       - name: Run frontend tests with coverage
+        if: steps.check-frontend.outputs.frontend-exists == 'true'
         working-directory: ./frontend
         run: |
           npm run test:coverage || true
