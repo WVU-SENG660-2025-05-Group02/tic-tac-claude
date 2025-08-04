@@ -3,7 +3,12 @@ FROM node:22-alpine AS builder
 
 WORKDIR /app
 COPY package*.json ./
-RUN npm ci && npm cache clean --force
+# Smart npm install - use ci if lock file exists, install otherwise
+RUN if [ -f "package-lock.json" ]; then \
+        npm ci && npm cache clean --force; \
+    else \
+        npm install && npm cache clean --force; \
+    fi
 
 # Final stage with minimal attack surface
 FROM node:22-alpine
