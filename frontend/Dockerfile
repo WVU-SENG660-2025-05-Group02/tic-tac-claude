@@ -1,4 +1,4 @@
-# Use multi-stage build for security
+# Build stage - use full Node.js image for building
 FROM node:22-alpine AS builder
 
 WORKDIR /app
@@ -10,32 +10,43 @@ RUN if [ -f "package-lock.json" ]; then \
         npm install && npm cache clean --force; \
     fi
 
-# Final stage with minimal attack surface
-FROM node:22-alpine
+# Production stage - Debian slim with aggressive Go removal
+FROM node:22-slim
 
 WORKDIR /app
 
-# Update Alpine packages and remove Go to fix CVE-2024-34156, CVE-2024-24790, and CVE-2023-45288
-RUN apk update && apk upgrade --no-cache && \
-    # Remove Go completely to eliminate stdlib vulnerabilities
-    apk del go 2>/dev/null || true && \
+# Aggressively remove all Go-related packages and binaries to eliminate CVEs
+RUN apt-get update && \
+    # Remove ALL Go packages and binaries completely
+    apt-get remove -y --purge \
+        golang* \
+        go-* \
+        gccgo* \
+        '*golang*' \
+        '*-go' \
+        '*-go-*' 2>/dev/null || true && \
+    # Search and remove any remaining Go binaries
+    find /usr -name "*go*" -type f -executable -delete 2>/dev/null || true && \
+    find /bin -name "*go*" -type f -delete 2>/dev/null || true && \
+    find /sbin -name "*go*" -type f -delete 2>/dev/null || true && \
     # Install only essential packages
-    apk add --no-cache dumb-init && \
-    # Remove package manager and other unnecessary tools for security
-    rm -rf /var/cache/apk/* /tmp/* /var/tmp/* /usr/share/man/* /usr/share/doc/*
+    apt-get install -y --no-install-recommends \
+        dumb-init \
+        ca-certificates && \
+    # Final cleanup
+    apt-get autoremove -y && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/* /usr/share/man/* /usr/share/info/*
 
-# Copy dependencies from builder stage
+# Copy built dependencies from builder
 COPY --from=builder /app/node_modules ./node_modules
 COPY package*.json ./
 COPY . .
 
 # Create non-root user for security
-RUN addgroup -g 1001 -S nodejs && \
-    adduser -S -u 1001 -G nodejs nodejs && \
-    chown -R nodejs:nodejs /app && \
-    # Remove write permissions from system directories
-    find /app -type d -exec chmod 755 {} \; && \
-    find /app -type f -exec chmod 644 {} \;
+RUN groupadd -g 1001 nodejs && \
+    useradd -r -u 1001 -g nodejs nodejs && \
+    chown -R nodejs:nodejs /app
 
 USER nodejs
 
