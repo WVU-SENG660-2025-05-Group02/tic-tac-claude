@@ -16,15 +16,15 @@ FROM gcr.io/distroless/nodejs22-debian12:nonroot
 # Set working directory
 WORKDIR /app
 
-# Copy built node_modules from builder
-COPY --from=builder /app/node_modules ./node_modules
+# Copy built node_modules from builder with correct ownership
+COPY --from=builder --chown=65532:65532 /app/node_modules ./node_modules
 
-# Copy application files
-COPY package*.json ./
-COPY . .
+# Copy application files with correct ownership
+COPY --chown=65532:65532 package*.json ./
+COPY --chown=65532:65532 . .
 
-# Distroless runs as nonroot user (UID 65532) by default - maximum security
-# No shell, no package manager, no Go binaries
+# Explicitly set user (nonroot = UID 65532)
+USER 65532
 
 EXPOSE 3000
 
